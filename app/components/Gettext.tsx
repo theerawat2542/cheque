@@ -1,105 +1,51 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button, Modal, DatePicker, Select, message, Spin } from "antd";
-import dayjs, { Dayjs } from "dayjs";
+import { useState } from "react";
+import { Button, Input, message, Space } from "antd";
+import { DatabaseOutlined } from "@ant-design/icons";
 
-const { Option } = Select;
+export default function GetText() {
+  const [date, setDate] = useState("");
 
-const types = [
-  "CW_RF",
-  "CW_AC",
-  "KB_269",
-  "KB_269_New",
-  "KB_277",
-  "KB_277_New",
-  "KB_865",
-  "KB_865_New",
-  "HSBC",
-];
-
-export default function Gettext() {
-  const [visible, setVisible] = useState(false);
-  const [date, setDate] = useState<Dayjs | null>(null);
-  const [type, setType] = useState<string>();
-  const [loading, setLoading] = useState(false);
-
-  const runScript = async () => {
-    if (!date || !type) {
-      message.warning("กรุณาเลือกวันที่และ Type");
+  const runSQL = async () => {
+    if (!date || date.length !== 8) {
+      message.error("กรุณากรอกวันที่รูปแบบ ddmmyyyy เช่น 04122025");
       return;
     }
 
-    setLoading(true);
-
     try {
-      const formattedDate = date.format("DDMMYYYY");
-
       const res = await fetch("/api/run-sql", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, date: formattedDate }),
+        body: JSON.stringify({ chqDate: date }),
       });
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
+      if (!res.ok) {
+        return message.error(data.error || "เกิดข้อผิดพลาด");
+      }
 
-      message.success(data.message);
-      setVisible(false);
-      setDate(null);
-      setType(undefined);
+      message.success(`รัน SQL สำเร็จ! RowsAffected: ${data.rowsAffected}`);
     } catch (err) {
-      message.error((err as Error).message);
-    } finally {
-      setLoading(false);
+      console.error(err);
+      message.error("เชื่อมต่อ API ไม่สำเร็จ");
     }
   };
 
   return (
-    <>
-      <Button type="primary" onClick={() => setVisible(true)}>
-        Get Text
+    <Space direction="vertical">
+      <Input
+        placeholder="กรอกวันที่ ddmmyyyy เช่น 04122025"
+        value={date}
+        maxLength={8}
+        onChange={(e) => setDate(e.target.value)}
+        style={{ width: 200 }}
+      />
+
+      <Button type="primary" icon={<DatabaseOutlined />} onClick={runSQL}>
+        Run KB_865.sql
       </Button>
-
-      <Modal
-        title="Run SQL Script"
-        open={visible}
-        onCancel={() => setVisible(false)}
-        footer={null}
-      >
-        {loading ? (
-          <div style={{ textAlign: "center", padding: 20 }}>
-            <Spin size="large" tip="กำลังรัน SQL..." />
-          </div>
-        ) : (
-          <>
-            <div style={{ marginBottom: 16 }}>
-              <label>เลือกวันที่: </label>
-              <DatePicker value={date} onChange={setDate} />
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <label>เลือก Type: </label>
-              <Select
-                style={{ width: 200 }}
-                value={type}
-                onChange={setType}
-              >
-                {types.map((t) => (
-                  <Option key={t} value={t}>
-                    {t}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-
-            <Button type="primary" onClick={runScript}>
-              Run
-            </Button>
-          </>
-        )}
-      </Modal>
-    </>
+    </Space>
   );
 }

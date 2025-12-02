@@ -17,7 +17,7 @@ import WHT from "./components/WHT";
 import Txt from "./components/Txt";
 import Enc from "./components/Enc";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
-import Gettext from "./components/Gettext";
+// import Gettext from "./components/Gettext";
 
 const { Title } = Typography;
 

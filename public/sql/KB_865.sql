@@ -137,12 +137,12 @@ DECLARE @WHTIncomeType char(2)
 
 DECLARE @CountLine INT
 DECLARE @CountInvoice INT
-
-DECLARE @CheckVendor AS INT
 DECLARE @CurDate VARCHAR(8);
+DECLARE @CheckVendor AS INT
+
 SET NOCOUNT ON
 
-SET @CHQDATE=''  -- ##################  MUST INPUT FIRST  วันที่จาก Mail--
+SET @CHQDATE=''  
 SET @PrintData=''
 SET @PrintData2=''
 SET @CountLine=1
@@ -441,7 +441,7 @@ BEGIN
 				RTRIM(@DocumentNo)+ '~' + --9
 				RTRIM(@CHQDATE)+ '~' + --10
 				--RTRIM('R')+ '~' + --11
-				RTRIM('O')+ '~' + --11
+				RTRIM('R')+ '~' + --11
 				RTRIM('BN')+ '~' + --12
 				RTRIM('')+ '~' + --13
 				RTRIM('U')+ '~' + --14
@@ -451,7 +451,7 @@ BEGIN
 				RTRIM('M')+ '~' + --18
 				RTRIM('Y')+ '~' + --19
 				RTRIM('')+ '~' + --20
-				RTRIM('0020286')+ '~' + --21
+				RTRIM('0020722')+ '~' + --21
 				--RTRIM('0020722')+ '~' + --21
 				--RTRIM(@iDispatchToCode)+ '~' + --21
 				RTRIM(RIGHT(@PND,1))+ '~' + --22
@@ -494,7 +494,7 @@ BEGIN
 				RTRIM('')+ '~' + --57
 				RTRIM('')+ '~' + --58
 				--RTRIM('')+ '~' + --59
-				RTRIM('OTH')+ '~' + --59
+				RTRIM('ID')+ '~' + --59
 				--RTRIM('OR,OT,DRV')+ '~' + --60
 				--RTRIM('')+ '~' + --60
 				RTRIM(@RefDocument)+ '~' + --60

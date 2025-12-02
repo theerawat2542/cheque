@@ -40,7 +40,7 @@ export default function ImportDB({ data }: ImportDBProps) {
       }
     } catch (err) {
       console.error(err);
-      message.error("เกิดข้อผิดพลาดในการเชื่อมต่อ API");
+      message.error("เกิดข้อผิดพลาดในการเชื่อมต่อ API หรือต้อง Clear database ก่อน");
     }
   };
 

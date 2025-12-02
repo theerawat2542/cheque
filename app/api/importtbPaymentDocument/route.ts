@@ -35,23 +35,35 @@ export async function POST(req: Request) {
 
     const tableName = "dbo.tbPaymentDocument";
 
+    // ตรวจสอบว่ามีข้อมูลใน table หรือไม่
+    const checkResult = await pool.request().query(`SELECT COUNT(*) AS count FROM ${tableName}`);
+    const count = checkResult.recordset[0].count;
+
+    if (count > 0) {
+      return NextResponse.json(
+        { error: "ยังมีข้อมูลในฐานข้อมูล กรุณา Clear Database ก่อน" },
+        { status: 400 }
+      );
+    }
+
+    // ถ้าว่างแล้วค่อย import
     for (const row of data) {
-  await pool
-    .request()
-    .input("DocumentNo", sql.NVarChar, row.DocumentNo ? String(row.DocumentNo) : "")
-    .input("DocumentYear", sql.NVarChar, row.DocumentYear ? String(row.DocumentYear) : "")
-    .input("VendorCode", sql.NVarChar, row.VendorCode ? String(row.VendorCode) : "")
-    .input("VendorName", sql.NVarChar, row.VendorName ? String(row.VendorName) : "")
-    .input("Bankname", sql.NVarChar, row.Bankname ? String(row.Bankname) : "")
-    .input("Amount", sql.Decimal(18, 2), row.Amount ?? 0)
-    .input("Currency", sql.NVarChar, row.Currency ? String(row.Currency) : "")
-    .input("RefDocument", sql.NVarChar, row.RefDocument ? String(row.RefDocument) : "")
-    .query(
-      `INSERT INTO ${tableName} 
-      (DocumentNo, DocumentYear, VendorCode, VendorName, Bankname, Amount, Currency, RefDocument)
-      VALUES (@DocumentNo, @DocumentYear, @VendorCode, @VendorName, @Bankname, @Amount, @Currency, @RefDocument)`
-    );
-}
+      await pool
+        .request()
+        .input("DocumentNo", sql.NVarChar, row.DocumentNo ?? "")
+        .input("DocumentYear", sql.NVarChar, row.DocumentYear ?? "")
+        .input("VendorCode", sql.NVarChar, row.VendorCode ?? "")
+        .input("VendorName", sql.NVarChar, row.VendorName ?? "")
+        .input("Bankname", sql.NVarChar, row.Bankname ?? "")
+        .input("Amount", sql.Decimal(18, 2), row.Amount ?? 0)
+        .input("Currency", sql.NVarChar, row.Currency ?? "")
+        .input("RefDocument", sql.NVarChar, row.RefDocument ?? "")
+        .query(
+          `INSERT INTO ${tableName} 
+          (DocumentNo, DocumentYear, VendorCode, VendorName, Bankname, Amount, Currency, RefDocument)
+          VALUES (@DocumentNo, @DocumentYear, @VendorCode, @VendorName, @Bankname, @Amount, @Currency, @RefDocument)`
+        );
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

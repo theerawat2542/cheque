@@ -1,90 +1,47 @@
-// app/api/run-sql/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import sql, { ConnectionPool } from "mssql";
+import sql from "mssql";
 
-interface RunSqlRequest {
-  type: string;
-  date: string; // DDMMYYYY
-}
-
-interface RunSqlResponse {
-  message?: string;
-  error?: string;
-}
-
-const dbConfig: sql.config = {
-  user: "sa",
-  password: "tns2007",
-  server: "190.7.10.7",
-  database: "ChequeDirect",
-  options: {
-    encrypt: false,
-    trustServerCertificate: true,
-  },
-};
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body: RunSqlRequest = await req.json();
+    const { chqDate } = await req.json();
 
-    if (!body.type || !body.date) {
+    if (!chqDate || chqDate.length !== 8) {
       return NextResponse.json(
-        { error: "กรุณาส่ง type และ date ให้ครบ" },
+        { error: "Invalid date format, must be ddmmyyyy" },
         { status: 400 }
       );
     }
 
-    if (!/^\d{8}$/.test(body.date)) {
-      return NextResponse.json(
-        { error: "รูปแบบวันที่ต้องเป็น DDMMYYYY" },
-        { status: 400 }
-      );
-    }
+    // โหลดไฟล์ SQL
+    const filePath = path.join(process.cwd(), "public", "sql", "KB_865.sql");
+    let sqlText = fs.readFileSync(filePath, "utf8");
 
-    const sqlFilePath = path.join(
-      process.cwd(),
-      "public",
-      "sql",
-      `${body.type}.sql`
-    );
+    // แทนค่าในไฟล์ SQL
+    sqlText = sqlText.replace(
+  /SET\s*@CHQDATE\s*=\s*'.*?'/i,
+  `SET @CHQDATE='${chqDate}'`
+);
 
-    if (!fs.existsSync(sqlFilePath)) {
-      return NextResponse.json(
-        { error: `ไม่พบไฟล์ SQL ของ type: ${body.type}` },
-        { status: 404 }
-      );
-    }
 
-    let sqlContent = fs.readFileSync(sqlFilePath, "utf-8");
+    // Connect MSSQL
+    const pool = await sql.connect({
+      user: "sa",
+      password: "tns2007",
+      server: "190.7.10.7",
+      database: "ChequeDirect",
+      options: { encrypt: false },
+    });
 
-    // ตัด BOM อัตโนมัติถ้ามี
-    if (sqlContent.charCodeAt(0) === 0xfeff) {
-      sqlContent = sqlContent.slice(1);
-    }
-
-    // แทนวันที่ในไฟล์ SQL
-    sqlContent = sqlContent.replace(
-      /SET @CHQDATE\s*=\s*'.*?'/i,
-      `SET @CHQDATE='${body.date}'`
-    );
-
-    const pool: ConnectionPool = await sql.connect(dbConfig);
-
-    try {
-      await pool.request().query(sqlContent);
-    } finally {
-      await pool.close();
-    }
+    const result = await pool.request().query(sqlText);
 
     return NextResponse.json({
-      message: `Run SQL type ${body.type} วันที่ ${body.date} สำเร็จ`,
+      success: true,
+      rowsAffected: result.rowsAffected,
     });
-  } catch (err) {
-    let message = "เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
-    if (err instanceof Error) message = err.message;
-    console.error("SQL Execution Error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (error) {
+    console.error("SQL run error:", error);
+    return NextResponse.json({ error: "SQL execution failed" }, { status: 500 });
   }
 }
