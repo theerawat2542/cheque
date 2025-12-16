@@ -3,33 +3,66 @@
 import { Button, message } from "antd";
 import { DatabaseOutlined } from "@ant-design/icons";
 
+/** ✅ ข้อมูลที่พร้อม import */
 type ChequeRow = {
   DocumentNo: string;
   DocumentYear: string;
   VendorCode: string;
   VendorName: string;
   Bankname: string;
-  Amount: number;
+  Amount: string;
   Currency: string;
   RefDocument: string;
 };
 
-type ImportDBProps = {
-  data: ChequeRow[];
+/** ✅ ข้อมูลดิบจาก Excel */
+type RawChequeRow = {
+  DocumentNo?: unknown;
+  DocumentYear?: unknown;
+  VendorCode?: unknown;
+  VendorName?: unknown;
+  Bankname?: unknown;
+  Amount?: unknown;
+  Currency?: unknown;
+  RefDocument?: unknown;
 };
 
+type ImportDBProps = {
+  data: RawChequeRow[];
+};
+
+/** ✅ helper ปลอดภัย */
+const toStringSafe = (value: unknown): string =>
+  value === null || value === undefined ? "" : String(value).trim();
+
+/** ✅ mapper แบบ type-safe */
+const mapToChequeRow = (row: RawChequeRow): ChequeRow => ({
+  DocumentNo: toStringSafe(row.DocumentNo),
+  DocumentYear: toStringSafe(row.DocumentYear),
+  VendorCode: toStringSafe(row.VendorCode),
+  VendorName: toStringSafe(row.VendorName),
+  Bankname: toStringSafe(row.Bankname),
+  Amount: toStringSafe(row.Amount),
+  Currency: toStringSafe(row.Currency),
+  RefDocument: toStringSafe(row.RefDocument),
+});
+
 export default function ImportDB({ data }: ImportDBProps) {
+
   const handleImport = async () => {
     if (data.length === 0) {
       message.warning("ไม่มีข้อมูลสำหรับนำเข้า");
       return;
     }
 
+    // ✅ แปลง + type safe
+    const preparedData: ChequeRow[] = data.map(mapToChequeRow);
+
     try {
       const res = await fetch("/api/importtbPaymentDocument", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data }),
+        body: JSON.stringify({ data: preparedData }),
       });
 
       if (res.ok) {
@@ -40,7 +73,7 @@ export default function ImportDB({ data }: ImportDBProps) {
       }
     } catch (err) {
       console.error(err);
-      message.error("เกิดข้อผิดพลาดในการเชื่อมต่อ API หรือต้อง Clear database ก่อน");
+      message.error("เกิดข้อผิดพลาดในการเชื่อมต่อ API");
     }
   };
 
@@ -64,10 +97,10 @@ export default function ImportDB({ data }: ImportDBProps) {
         transition: "all 0.3s ease",
       }}
       onMouseEnter={(e) => {
-        if (data.length > 0) (e.currentTarget.style.filter = "brightness(1.2)");
+        if (data.length > 0) e.currentTarget.style.filter = "brightness(1.2)";
       }}
       onMouseLeave={(e) => {
-        if (data.length > 0) (e.currentTarget.style.filter = "brightness(1)");
+        if (data.length > 0) e.currentTarget.style.filter = "brightness(1)";
       }}
     >
       Import to DB
