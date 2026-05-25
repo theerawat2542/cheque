@@ -53,7 +53,7 @@ export default function Txt() {
         onClick={() => setOpen(true)}
         icon={<FileTextOutlined />}
         style={{
-          background: "linear-gradient(90deg, #11998e 0%, #38ef7d 100%)",
+          background: "linear-gradient(90deg, #11998e 0%, #39d374 100%)",
           border: "none",
           color: "#fff",
           fontWeight: 500,

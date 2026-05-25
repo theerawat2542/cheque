@@ -84,7 +84,7 @@ export default function ImportDB({ data }: ImportDBProps) {
       disabled={data.length === 0}
       style={{
         background: data.length > 0
-          ? "linear-gradient(90deg, #2575fc 0%, #6a11cb 100%)"
+          ? "linear-gradient(90deg, #62c90e 0%, #06b440 100%)"
           : "#cccccc",
         border: "none",
         color: "#fff",
