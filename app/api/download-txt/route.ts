@@ -5,7 +5,7 @@ import sql from "mssql";
 const dbConfig: sql.config = {
   user: "sa",
   password: "tns2007",
-  server: "190.7.10.7",
+  server: "10.35.10.7",
   database: "ChequeDirect",
   options: {
     encrypt: false,

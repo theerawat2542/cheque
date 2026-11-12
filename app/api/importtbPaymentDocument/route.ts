@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const pool = await sql.connect({
       user: "sa",
       password: "tns2007",
-      server: "190.7.10.7",
+      server: "10.35.10.7",
       database: "ChequeDirect",
       options: { encrypt: false },
     });
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
 //     const pool = await sql.connect({
 //       user: "sa",
 //       password: "tns2007",
-//       server: "190.7.10.7",
+//       server: "10.35.10.7",
 //       database: "ChequeDirect",
 //       options: { encrypt: false },
 //     });
